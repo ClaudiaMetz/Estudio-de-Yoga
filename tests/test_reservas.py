@@ -67,11 +67,12 @@ def test_ca3_cancelar_a_tiempo_devuelve_y_tarde_no(e):
 
 def test_ca4_oferta_confirmacion_vencimiento_y_sin_saldo(e):
     cid = clase(e, cap=2)
-    a, b, c, d = (alumna(e, n) for n in "ABCD")
+    a, b, c, d, siguiente = (alumna(e, n) for n in "ABCDE")
     e.reservar(a, cid, NOW)
     e.reservar(b, cid, NOW)
     e.reservar(c, cid, NOW)
     e.reservar(d, cid, NOW)
+    e.reservar(siguiente, cid, NOW)
 
     # al cancelar A, la primera en espera (C) recibe oferta sin descuento
     e.cancelar(a, cid, NOW)
@@ -88,6 +89,7 @@ def test_ca4_oferta_confirmacion_vencimiento_y_sin_saldo(e):
     assert estado(e, d, cid)["estado"] == "ofrecida"
     tarde = NOW + timedelta(minutes=30)
     assert estado(e, d, cid, tarde)["estado"] == "libre"
+    assert estado(e, siguiente, cid, tarde)["estado"] == "ofrecida"
     with pytest.raises(ReglaError):
         e.confirmar_oferta(d, cid, tarde)
 
