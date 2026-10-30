@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Mis clases</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;700&family=Young+Serif&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='tokens.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<main>
+  <header class="saldo">
+    <p>Hola, {{ v.nombre }}</p>
+    <div class="sello" role="img" aria-label="{{ v.saldo }} clases disponibles">
+      <span class="numero">{{ v.saldo }}</span>
+      <span class="leyenda">{{ 'clase disponible' if v.saldo == 1 else 'clases disponibles' }}</span>
+    </div>
+  </header>
+
+  {% if msg %}<p class="aviso" role="status">{{ msg }}</p>{% endif %}
+
+  <h2>Próximas clases</h2>
+  {% for c in v.clases %}
+  <article class="clase {{ c.estado }}">
+    <h3>{{ c.title }}</h3>
+    <p>{{ c.starts_at|fecha }}</p>
+    <p>Con {{ c.instructor }}</p>
+
+    {% if c.estado == 'confirmada' %}
+      <p class="estado confirmada">Tu lugar está confirmado.</p>
+      <form method="post" action="{{ url_for('accion', token=token, accion='cancelar', class_id=c.id) }}">
+        <button class="boton">Cancelar lugar</button></form>
+    {% elif c.estado == 'ofrecida' %}
+      <p class="estado ofrecida">Se liberó un lugar. Confírmalo antes de las {{ c.oferta_hasta|hora }}.</p>
+      <form method="post" action="{{ url_for('accion', token=token, accion='confirmar', class_id=c.id) }}">
+        <button class="boton principal">Confirmar lugar</button></form>
+      <form method="post" action="{{ url_for('accion', token=token, accion='cancelar', class_id=c.id) }}">
+        <button class="boton">Salir de la lista</button></form>
+    {% elif c.estado == 'espera' %}
+      <p class="estado">Lista de espera: lugar {{ c.posicion }}.</p>
+      <form method="post" action="{{ url_for('accion', token=token, accion='cancelar', class_id=c.id) }}">
+        <button class="boton">Salir de la lista</button></form>
+    {% elif c.libres > 0 %}
+      <p>{{ c.libres }} {{ 'lugar libre' if c.libres == 1 else 'lugares libres' }}.</p>
+      <form method="post" action="{{ url_for('accion', token=token, accion='reservar', class_id=c.id) }}">
+        <button class="boton principal">Reservar lugar</button></form>
+    {% else %}
+      <p>La clase está llena.</p>
+      <form method="post" action="{{ url_for('accion', token=token, accion='reservar', class_id=c.id) }}">
+        <button class="boton principal">Anotarme en la lista de espera</button></form>
+    {% endif %}
+  </article>
+  {% else %}
+  <p class="vacio">No hay clases próximas. Vuelve pronto.</p>
+  {% endfor %}
+
+  <h2>Historial de clases</h2>
+  <ul class="historial">
+    {% for h in v.historial %}
+    <li>
+      <span>{{ h.reason }}<br><span class="motivo">{{ h.created_at|fecha }}</span></span>
+      <span class="delta">{{ '%+d'|format(h.delta) if h.delta else '0' }}</span>
+    </li>
+    {% else %}
+    <li>Aún no tienes movimientos.</li>
+    {% endfor %}
+  </ul>
+</main>
+</body>
+</html>

@@ -1,0 +1,40 @@
+*, *::before, *::after { box-sizing: border-box; }
+body { margin: 0; background: var(--bruma); color: var(--anil); font: 18px/1.5 var(--fuente-texto); }
+main { max-width: 34rem; margin: 0 auto; padding: 1.25rem 1rem 3rem; }
+h1, h2, h3 { font-family: var(--fuente-titulo); font-weight: 400; line-height: 1.2; margin: 0 0 .5rem; }
+h2 { font-size: 1.5rem; margin-top: 2rem; }
+h3 { font-size: 1.25rem; }
+p { margin: 0 0 .5rem; }
+a:focus-visible, button:focus-visible, input:focus-visible { outline: 3px solid var(--hibisco); outline-offset: 2px; }
+
+.saldo { text-align: center; padding: 1rem 0 .5rem; }
+.sello { width: 9.5rem; height: 9.5rem; margin: .5rem auto; border: 2px solid var(--anil); border-radius: 999px;
+  outline: 2px solid var(--hibisco); outline-offset: 6px; display: grid; place-content: center; background: var(--papel); }
+.sello .numero { font: 4rem/1 var(--fuente-titulo); color: var(--hibisco); }
+.sello .leyenda { font-size: .9rem; }
+
+.aviso { background: var(--papel); border: 2px solid var(--musgo); border-radius: var(--radio); padding: .75rem 1rem; margin: 1rem 0; }
+
+.clase { background: var(--papel); border: 2px solid var(--anil); border-radius: var(--radio); padding: 1rem; margin-bottom: 1rem; }
+.clase.ofrecida { border-color: var(--ambar); }
+.clase.confirmada { border-color: var(--musgo); }
+.estado { font-weight: 700; }
+.estado.confirmada { color: var(--musgo); }
+.estado.ofrecida { color: var(--ambar); }
+
+form { margin: .75rem 0 0; }
+.boton { display: block; width: 100%; min-height: 52px; padding: .6rem 1rem; border: 2px solid var(--anil); border-radius: 999px;
+  background: var(--papel); color: var(--anil); font: 700 1rem var(--fuente-texto); cursor: pointer; }
+.boton.principal { background: var(--hibisco); border-color: var(--hibisco); color: #fff; }
+.boton + form .boton, form + form .boton { margin-top: .5rem; }
+
+.historial { list-style: none; padding: 0; margin: 0; }
+.historial li { display: flex; justify-content: space-between; gap: 1rem; padding: .6rem 0; border-bottom: 1px solid var(--anil); }
+.historial .delta { font-weight: 700; white-space: nowrap; }
+.motivo { font-size: .9rem; }
+.vacio { padding: 1rem 0; }
+
+table { width: 100%; border-collapse: collapse; font-size: .95rem; }
+td, th { text-align: left; padding: .4rem .3rem; border-bottom: 1px solid var(--anil); vertical-align: top; }
+input[type=number] { width: 4rem; font: inherit; padding: .3rem; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }

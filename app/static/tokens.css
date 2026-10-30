@@ -1,0 +1,12 @@
+/* Fuente de verdad de la marca. Ver .claude/skills/marca-estudio/SKILL.md */
+:root {
+  --anil: #1F2A44;
+  --bruma: #E3ECE8;
+  --papel: #FAFBF9;
+  --hibisco: #B23A5B;
+  --musgo: #3F6B58;
+  --ambar: #8A5A0B;
+  --radio: 14px;
+  --fuente-titulo: "Young Serif", Georgia, serif;
+  --fuente-texto: "Figtree", system-ui, -apple-system, "Segoe UI", sans-serif;
+}

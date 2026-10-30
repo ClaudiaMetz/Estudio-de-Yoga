@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Alumnas</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='tokens.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<main>
+  <h1>Alumnas</h1>
+  {% if msg %}<p class="aviso" role="status">{{ msg }}</p>{% endif %}
+  <table>
+    <tr><th>Nombre</th><th>Clases</th><th>Registrar paquete</th></tr>
+    {% for a in alumnas %}
+    <tr>
+      <td><a href="{{ base }}/a/{{ a.token }}">{{ a.name }}</a></td>
+      <td>{{ a.saldo }}</td>
+      <td><form method="post" action="{{ url_for('admin_paquete') }}">
+        <input type="hidden" name="key" value="{{ key }}">
+        <input type="hidden" name="alumna" value="{{ a.id }}">
+        <input type="number" name="tamano" value="10" min="1" aria-label="Clases del paquete">
+        <button class="boton">Registrar paquete</button></form></td>
+    </tr>
+    {% endfor %}
+  </table>
+</main>
+</body>
+</html>
