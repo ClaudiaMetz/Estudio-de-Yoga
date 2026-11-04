@@ -1,0 +1,14 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Clases</title><link rel="stylesheet" href="{{ url_for('static', filename='tokens.css') }}"><link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}"></head><body><main>
+<h1>Clases</h1>
+<p><a href="{{ url_for('admin') }}">Volver a alumnas</a></p>
+{% if msg %}<p class="aviso" role="status">{{ msg }}</p>{% endif %}
+{% for c in d.proximas %}
+<article class="clase"><h3>{{ c.title }}</h3><p>{{ c.starts_at|fecha }}. Con {{ c.instructor }}.</p>
+<p>{{ c.ocupadas }} de {{ c.capacity }} lugares. {{ c.espera }} en lista de espera.</p>
+<form method="post" action="{{ url_for('admin_cancelar_clase', class_id=c.id) }}">
+<p><label>Mensaje para las alumnas<br><input type="text" name="mensaje" required style="width:100%;font:inherit;padding:.5rem" placeholder="Mariana está enferma"></label></p>
+<button class="boton">Cancelar clase y avisar</button></form></article>
+{% else %}<p class="vacio">No hay clases próximas.</p>{% endfor %}
+{% if d.canceladas %}<h2>Clases canceladas</h2>
+{% for c in d.canceladas %}<p><a href="{{ url_for('admin_avisos', class_id=c.id) }}">{{ c.title }}, {{ c.starts_at|fecha }}</a>: {{ c.pendientes }} avisos pendientes.</p>{% endfor %}{% endif %}
+</main></body></html>

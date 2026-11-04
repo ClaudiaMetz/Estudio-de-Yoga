@@ -10,6 +10,7 @@
 <body>
 <main>
   <h1>Alumnas</h1>
+  <p><a href="{{ url_for('admin_clases') }}">Ver clases y avisar cambios</a></p>
   {% if msg %}<p class="aviso" role="status">{{ msg }}</p>{% endif %}
   <table>
     <tr><th>Nombre</th><th>Clases</th><th>Registrar paquete</th></tr>
@@ -18,13 +19,13 @@
       <td><a href="{{ base }}/a/{{ a.token }}">{{ a.name }}</a></td>
       <td>{{ a.saldo }}</td>
       <td><form method="post" action="{{ url_for('admin_paquete') }}">
-        <input type="hidden" name="key" value="{{ key }}">
         <input type="hidden" name="alumna" value="{{ a.id }}">
         <input type="number" name="tamano" value="10" min="1" aria-label="Clases del paquete">
         <button class="boton">Registrar paquete</button></form></td>
     </tr>
     {% endfor %}
   </table>
+  <form method="post" action="{{ url_for('admin_logout') }}"><button class="boton">Salir del panel</button></form>
 </main>
 </body>
 </html>

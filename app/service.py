@@ -6,6 +6,7 @@ import secrets
 import sqlite3
 from contextlib import contextmanager
 from datetime import datetime, timedelta, timezone
+from urllib.parse import quote
 
 ACTIVAS = "('confirmada','espera','ofrecida')"
 
@@ -28,6 +29,12 @@ CREATE TABLE IF NOT EXISTS ledger(
   student_id INTEGER NOT NULL REFERENCES students(id),
   kind TEXT NOT NULL, delta INTEGER NOT NULL, class_id INTEGER,
   reason TEXT NOT NULL, actor TEXT NOT NULL, created_at TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS class_cancellations(
+  class_id INTEGER PRIMARY KEY REFERENCES classes(id), message TEXT NOT NULL,
+  actor TEXT NOT NULL, created_at TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS avisos(
+  class_id INTEGER NOT NULL, student_id INTEGER NOT NULL, estado_previo TEXT NOT NULL,
+  sent_at TEXT, PRIMARY KEY(class_id, student_id));
 CREATE TRIGGER IF NOT EXISTS ledger_no_update BEFORE UPDATE ON ledger
   BEGIN SELECT RAISE(ABORT, 'ledger inmutable'); END;
 CREATE TRIGGER IF NOT EXISTS ledger_no_delete BEFORE DELETE ON ledger
@@ -49,6 +56,13 @@ def iso(d):
 
 def parse(s):
     return datetime.fromisoformat(s)
+
+
+def enlace_whatsapp(phone, texto, pais="52"):
+    d = "".join(ch for ch in (phone or "") if ch.isdigit())
+    if len(d) == 10:
+        d = pais + d
+    return f"https://wa.me/{d}?text={quote(texto)}"
 
 
 class Studio:
@@ -188,7 +202,7 @@ class Studio:
             self._vencer(c, now)
             s = c.execute("SELECT * FROM students WHERE id=?", (student_id,)).fetchone()
             clases = []
-            for cl in c.execute("SELECT * FROM classes WHERE starts_at > ? ORDER BY starts_at", (iso(now),)).fetchall():
+            for cl in c.execute("SELECT * FROM classes WHERE starts_at > ? AND id NOT IN (SELECT class_id FROM class_cancellations) ORDER BY starts_at", (iso(now),)).fetchall():
                 b = c.execute(
                     f"SELECT * FROM bookings WHERE class_id=? AND student_id=? AND status IN {ACTIVAS}",
                     (cl["id"], student_id)).fetchone()
@@ -212,6 +226,8 @@ class Studio:
             cl = c.execute("SELECT * FROM classes WHERE id=?", (class_id,)).fetchone()
             if not cl:
                 raise ReglaError("Esa clase no existe.")
+            if c.execute("SELECT 1 FROM class_cancellations WHERE class_id=?", (class_id,)).fetchone():
+                raise ReglaError("Esa clase fue cancelada.")
             if parse(cl["starts_at"]) <= now:
                 raise ReglaError("Esa clase ya empezó.")
             if c.execute(f"SELECT 1 FROM bookings WHERE class_id=? AND student_id=? AND status IN {ACTIVAS}",
@@ -279,3 +295,60 @@ class Studio:
             c.execute("UPDATE bookings SET status='confirmada', offer_expires_at=NULL WHERE id=?", (b["id"],))
             self._log(c, student_id, "reserva", -1, class_id, f"Lugar confirmado: {cl['title']}", "alumna", now)
             return {"estado": "confirmada"}
+    # ---------- Spec 002: cancelar clase y avisar ----------
+    def cancelar_clase(self, class_id, mensaje, actor="Andrea", now=None):
+        now = now or utcnow()
+        mensaje = (mensaje or "").strip()
+        if not mensaje:
+            raise ReglaError("Escribe un mensaje corto para las alumnas.")
+        with self._tx() as c:
+            cl = c.execute("SELECT * FROM classes WHERE id=?", (class_id,)).fetchone()
+            if not cl:
+                raise ReglaError("Esa clase no existe.")
+            if c.execute("SELECT 1 FROM class_cancellations WHERE class_id=?", (class_id,)).fetchone():
+                raise ReglaError("Esta clase ya estaba cancelada.")
+            if parse(cl["starts_at"]) <= now:
+                raise ReglaError("Esa clase ya empezó.")
+            c.execute("INSERT INTO class_cancellations VALUES(?,?,?,?)", (class_id, mensaje, actor, iso(now)))
+            filas = c.execute(f"SELECT * FROM bookings WHERE class_id=? AND status IN {ACTIVAS} ORDER BY id",
+                              (class_id,)).fetchall()
+            for b in filas:
+                if b["status"] == "confirmada":
+                    self._log(c, b["student_id"], "devolucion", 1, class_id,
+                              f"Clase cancelada: {cl['title']}", actor, now)
+                c.execute("UPDATE bookings SET status='cancelada', offer_expires_at=NULL WHERE id=?", (b["id"],))
+                c.execute("INSERT INTO avisos(class_id,student_id,estado_previo) VALUES(?,?,?)",
+                          (class_id, b["student_id"], b["status"]))
+            return len(filas)
+
+    def avisos(self, class_id):
+        with self._tx() as c:
+            cl = c.execute("""SELECT cl.title, cl.starts_at, k.message FROM classes cl
+                              JOIN class_cancellations k ON k.class_id=cl.id WHERE cl.id=?""", (class_id,)).fetchone()
+            if not cl:
+                return None
+            filas = [dict(r) for r in c.execute(
+                """SELECT a.student_id, a.estado_previo, a.sent_at, s.name, s.phone FROM avisos a
+                   JOIN students s ON s.id=a.student_id WHERE a.class_id=? ORDER BY s.name""", (class_id,))]
+            return {"clase": dict(cl), "avisos": filas}
+
+    def marcar_aviso(self, class_id, student_id, now=None):
+        now = now or utcnow()
+        with self._tx() as c:
+            c.execute("UPDATE avisos SET sent_at=COALESCE(sent_at, ?) WHERE class_id=? AND student_id=?",
+                      (iso(now), class_id, student_id))
+
+    def clases_admin(self, now=None):
+        now = now or utcnow()
+        with self._tx() as c:
+            proximas = [dict(r) for r in c.execute(
+                """SELECT cl.*,
+                     (SELECT COUNT(*) FROM bookings WHERE class_id=cl.id AND status IN ('confirmada','ofrecida')) AS ocupadas,
+                     (SELECT COUNT(*) FROM bookings WHERE class_id=cl.id AND status='espera') AS espera
+                   FROM classes cl WHERE starts_at > ? AND id NOT IN (SELECT class_id FROM class_cancellations)
+                   ORDER BY starts_at""", (iso(now),))]
+            canceladas = [dict(r) for r in c.execute(
+                """SELECT cl.id, cl.title, cl.starts_at,
+                     (SELECT COUNT(*) FROM avisos WHERE class_id=cl.id AND sent_at IS NULL) AS pendientes
+                   FROM classes cl JOIN class_cancellations k ON k.class_id=cl.id ORDER BY k.created_at DESC""")]
+            return {"proximas": proximas, "canceladas": canceladas}
