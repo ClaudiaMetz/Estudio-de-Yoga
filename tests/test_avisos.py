@@ -83,10 +83,12 @@ def test_ca5_marcar_aviso_registra_fecha_y_baja_los_pendientes(e):
 def test_panel_autentica_por_post_y_no_exhibe_clave_en_la_url(tmp_path, monkeypatch):
     monkeypatch.setenv("ADMIN_KEY", "clave-de-prueba")
     monkeypatch.setenv("FLASK_SECRET_KEY", "secreto-de-sesion-para-pruebas")
+    monkeypatch.setenv("DEMO_STUDENT_TOKEN", "alumna-demo")
     app = create_app(str(tmp_path / "web.db"))
     app.testing = True
     client = app.test_client()
 
+    assert b"/a/alumna-demo" in client.get("/").data
     assert client.get("/admin").status_code == 403
     assert client.post("/admin/login", data={"key": "incorrecta"}).status_code == 403
     respuesta = client.post("/admin/login", data={"key": "clave-de-prueba"})

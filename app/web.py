@@ -106,7 +106,9 @@ def create_app(db_path=None):
 
     @app.get("/")
     def inicio():
-        return render_template("index.html")
+        token_demo = os.environ.get("DEMO_STUDENT_TOKEN")
+        demo_url = url_for("alumna", token=token_demo) if token_demo else None
+        return render_template("index.html", demo_url=demo_url)
 
     @app.get("/admin/clases")
     def admin_clases():
