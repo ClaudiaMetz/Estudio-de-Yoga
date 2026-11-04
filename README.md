@@ -7,9 +7,11 @@ Metodología: Spec Driven Development.
 |---|---|
 | Contexto persistente del agente | `CLAUDE.md` |
 | Spec del feature | `specs/001-reserva-cupo-lista-espera.md` |
+| Spec de cancelación y avisos | `specs/002-cancelar-clase-y-avisar.md` |
 | Skill de marca | `.claude/skills/marca-estudio/SKILL.md` |
+| ICP y persona (con hipótesis identificadas) | `docs/icp-persona.md` |
 | Reglas de negocio | `app/service.py` |
-| Pruebas (una por criterio de aceptación) | `tests/test_reservas.py` |
+| Pruebas | `tests/test_reservas.py`, `tests/test_avisos.py` |
 
 ## Ejecutar en local
 ```bash
@@ -32,7 +34,7 @@ Cualquier host con Python (Render, Railway, Fly.io): comando `gunicorn wsgi:app`
 Spec: `specs/002-cancelar-clase-y-avisar.md`. ICP: `docs/icp-persona.md`. Tras iniciar sesión, el panel de clases está en `/admin/clases`.
 
 ## Producción en Render
-1. Sube el proyecto a GitHub.
-2. En render.com: **New > Blueprint** y elige el repositorio (usa `render.yaml`). Render genera `ADMIN_KEY` solo: cópiala en **Environment**.
-3. Abre la URL pública `https://estudio-yoga.onrender.com`. Entra con la clave desde la página de inicio.
-Nota: el plan gratis tiene disco efímero y se duerme tras 15 minutos sin uso. Con `DEMO_SEED=1` se cargan datos de ejemplo al arrancar y la página inicial ofrece un enlace público a una alumna de demo; es solo una demo, no guardes datos reales ahí. Para uso real: plan de pago con disco persistente en `YOGA_DB` y `DEMO_SEED` apagado.
+1. Repo: <https://github.com/ClaudiaMetz/Estudio-de-Yoga>.
+2. En Render, crea el Blueprint desde `render.yaml`. Render genera `ADMIN_KEY` y `FLASK_SECRET_KEY`; consulta `ADMIN_KEY` en **Environment** para entrar al panel.
+3. URL pública: <https://estudio-yoga-ohk2.onrender.com>. La página inicial ofrece un enlace de demo de alumna.
+Nota: el plan gratis se duerme tras 15 minutos sin uso y pierde la base local al reiniciarse. `DEMO_SEED=1` vuelve a crear datos ficticios al iniciar; no guardes datos reales ahí. Para uso real: plan de pago con disco persistente en `YOGA_DB` y `DEMO_SEED` apagado.
