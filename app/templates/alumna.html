@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Mis clases</title>
+  <title>Mis clases · Estudio de Andrea</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;700&family=Young+Serif&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="{{ url_for('static', filename='tokens.css') }}">
@@ -11,8 +11,14 @@
 </head>
 <body>
 <main>
+  <nav class="site-header" aria-label="Marca del estudio">
+    <a class="marca" href="{{ url_for('inicio') }}">
+      <span class="marca-sello" aria-hidden="true">A</span>
+      <span class="marca-nombre">Estudio de Andrea</span>
+    </a>
+  </nav>
   <header class="saldo">
-    <p>Hola, {{ v.nombre }}</p>
+    <p class="saludo">Hola, {{ v.nombre }}</p>
     <div class="sello" role="img" aria-label="{{ v.saldo }} clases disponibles">
       <span class="numero">{{ v.saldo }}</span>
       <span class="leyenda">{{ 'clase disponible' if v.saldo == 1 else 'clases disponibles' }}</span>

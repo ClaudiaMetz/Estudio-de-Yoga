@@ -3,29 +3,53 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Alumnas</title>
+  <title>Alumnas · Estudio de Andrea</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&family=Young+Serif&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="{{ url_for('static', filename='tokens.css') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
 <main>
+  <header class="site-header">
+    <a class="marca" href="{{ url_for('admin') }}">
+      <span class="marca-sello" aria-hidden="true">A</span>
+      <span class="marca-nombre">Estudio de Andrea</span>
+    </a>
+    <form method="post" action="{{ url_for('admin_logout') }}">
+      <button class="salir" type="submit">Salir</button>
+    </form>
+  </header>
+
   <h1>Alumnas</h1>
-  <p><a href="{{ url_for('admin_clases') }}">Ver clases y avisar cambios</a></p>
+  <p>Consulta saldos y registra nuevos paquetes.</p>
+  <p><a class="boton boton-secundario" href="{{ url_for('admin_clases') }}">Ver clases y avisar cambios</a></p>
   {% if msg %}<p class="aviso" role="status">{{ msg }}</p>{% endif %}
-  <table>
-    <tr><th>Nombre</th><th>Clases</th><th>Registrar paquete</th></tr>
-    {% for a in alumnas %}
-    <tr>
-      <td><a href="{{ base }}/a/{{ a.token }}">{{ a.name }}</a></td>
-      <td>{{ a.saldo }}</td>
-      <td><form method="post" action="{{ url_for('admin_paquete') }}">
-        <input type="hidden" name="alumna" value="{{ a.id }}">
-        <input type="number" name="tamano" value="10" min="1" aria-label="Clases del paquete">
-        <button class="boton">Registrar paquete</button></form></td>
-    </tr>
-    {% endfor %}
-  </table>
-  <form method="post" action="{{ url_for('admin_logout') }}"><button class="boton">Salir del panel</button></form>
+
+  <div class="tabla-contenedor">
+    <table>
+      <thead><tr><th>Nombre</th><th>Clases</th><th>Nuevo paquete</th></tr></thead>
+      <tbody>
+      {% for a in alumnas %}
+        <tr>
+          <td><a href="{{ base }}/a/{{ a.token }}">{{ a.name }}</a></td>
+          <td>{{ a.saldo }}</td>
+          <td>
+            <form method="post" action="{{ url_for('admin_paquete') }}">
+              <input type="hidden" name="alumna" value="{{ a.id }}">
+              <label class="ayuda" for="paquete-{{ a.id }}">Clases a agregar</label>
+              <input id="paquete-{{ a.id }}" type="number" name="tamano" value="10" min="1" aria-label="Clases del paquete para {{ a.name }}">
+              <button class="boton boton-secundario">Registrar paquete</button>
+            </form>
+          </td>
+        </tr>
+      {% else %}
+        <tr><td colspan="3">Todavía no hay alumnas registradas.</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
 </main>
 </body>
 </html>
